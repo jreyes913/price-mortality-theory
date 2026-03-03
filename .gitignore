@@ -1,0 +1,17 @@
+# Python cache — catch all locations, not just specific dirs
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+
+# LaTeX build artifacts
+report/report.aux
+report/report.log
+report/report.out
+
+# Systemd service file
+pmt-analysis.service
