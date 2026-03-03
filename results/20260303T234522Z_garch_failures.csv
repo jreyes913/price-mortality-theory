@@ -1,0 +1,17 @@
+run_id,ticker,error_type,error,traceback
+20260303T234522Z,AAPL,ValueError,No data found for ticker AAPL,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/garch_comparison.py"", line 68, in garch_analysis
+    df = load_ticker_data(ticker, start_date=start_date, end_date=end_date)
+ValueError: No data found for ticker AAPL"
+20260303T234522Z,ERIE,ValueError,No data found for ticker ERIE,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/garch_comparison.py"", line 68, in garch_analysis
+    df = load_ticker_data(ticker, start_date=start_date, end_date=end_date)
+ValueError: No data found for ticker ERIE"
+20260303T234522Z,Q,ValueError,No data found for ticker Q,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/garch_comparison.py"", line 68, in garch_analysis
+    df = load_ticker_data(ticker, start_date=start_date, end_date=end_date)
+ValueError: No data found for ticker Q"
+20260303T234522Z,SNDK,ValueError,No data found for ticker SNDK,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/garch_comparison.py"", line 68, in garch_analysis
+    df = load_ticker_data(ticker, start_date=start_date, end_date=end_date)
+ValueError: No data found for ticker SNDK"

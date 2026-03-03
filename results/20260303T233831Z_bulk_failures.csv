@@ -1,0 +1,17 @@
+run_id,ticker,error_type,error,traceback
+20260303T233831Z,PSX,ValueError,No data found for ticker PSX,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/bulk_sweep.py"", line 90, in bulk_analysis
+    result = run_pipeline(
+ValueError: No data found for ticker PSX"
+20260303T233831Z,Q,ValueError,No data found for ticker Q,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/bulk_sweep.py"", line 90, in bulk_analysis
+    result = run_pipeline(
+ValueError: No data found for ticker Q"
+20260303T233831Z,SNDK,ValueError,No data found for ticker SNDK,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/bulk_sweep.py"", line 90, in bulk_analysis
+    result = run_pipeline(
+ValueError: No data found for ticker SNDK"
+20260303T233831Z,TMUS,ValueError,No data found for ticker TMUS,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/bulk_sweep.py"", line 90, in bulk_analysis
+    result = run_pipeline(
+ValueError: No data found for ticker TMUS"
