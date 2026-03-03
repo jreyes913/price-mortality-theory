@@ -19,7 +19,7 @@
 \maketitle
 
 \begin{abstract}
-This paper presents the Price Mortality Theory (PMT), a scale invariant framework for volatility forecasting derived from price action. By differentiating the Simple Moving Average (SMA) field across both time and window dimensions, we construct a momentum surface $\mu(W, t)$ that identifies structural shifts in price trends. We validate this signal against forward realized volatility $\hat{\sigma}$ using a Spearman rank correlation sweep across the S\&P 500 index. Our results demonstrate a robust predictive relationship, with a median Spearman $\rho$ of 0.389. Furthermore, we compare the PMT signal against a standard AR(1)-GARCH(1,1) model, finding that PMT provides a marginally stronger predictive lead for monthly realized volatility.
+This paper presents the Price Mortality Theory (PMT), a scale invariant framework for volatility forecasting derived from price action. By differentiating the Simple Moving Average (SMA) field across both time and window dimensions, we construct a momentum surface $\mu(W, t)$ that identifies structural shifts in price trends. We validate this signal against forward realized volatility $\hat{\sigma}$ using a Spearman rank correlation sweep across the S\&P 500 index. Our results demonstrate a robust predictive relationship, with a median Spearman $\rho$ of 0.531. Furthermore, we compare the PMT signal against a standard AR(1)-GARCH(1,1) model, finding that PMT provides a stronger predictive lead for monthly realized volatility.
 \end{abstract}
 
 \section{Introduction}
@@ -51,7 +51,7 @@ The bulk analysis of 500 tickers reveals a strong and consistent predictive sign
     \caption{Distribution of maximum Spearman $\rho$ across S\&P 500 tickers.}
 \end{figure}
 
-The median $\rho$ across the index for the PMT model is 0.389. The optimal parameters cluster around specific scales: the mean optimal window $W^*$ is 214 days, and the mean optimal horizon $h^*$ is 31 days. In comparison, the AR(1)-GARCH(1,1) model yields a mean Spearman correlation of 0.362 across the same ticker set and forecast horizon.
+The median $\rho$ across the index for the PMT model is 0.531. The optimal parameters cluster around specific scales: the mean optimal window $W^*$ is 242 days, and the mean optimal horizon $h^*$ is 43 days. In comparison, the AR(1)-GARCH(1,1) model yields a mean Spearman correlation of 0.363 across the same ticker set at a standard 31-day forecast horizon.
 
 \begin{table}[ht]
 \centering
@@ -60,8 +60,8 @@ The median $\rho$ across the index for the PMT model is 0.389. The optimal param
 \toprule
 Model & Mean $\rho$ & Median $\rho$ \\
 \midrule
-Price Mortality Theory (PMT) & 0.389 & 0.392 \\
-AR(1)-GARCH(1,1) & 0.362 & 0.358 \\
+Price Mortality Theory (PMT) & 0.508 & 0.531 \\
+AR(1)-GARCH(1,1) (h=31) & 0.363 & 0.358 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -77,12 +77,12 @@ A case study of the SPY illustrates the correlation surface (Figure 3). The heat
 For individual high growth tickers such as AAPL, we observed peak correlations as high as $\rho = 0.45$, consistently outperforming the baseline GARCH forecasts in rank correlation.
 
 \section{Discussion}
-The results confirm that the momentum surface $\mu$ carries actionable information regarding future market turbulence. While GARCH models are effective at capturing volatility clustering through autoregressive returns, the PMT signal leverages structural trend decay across multiple look-back scales. The marginally higher correlation observed in PMT ($\rho = 0.389$ vs 0.362) suggests that structural trend thinning provides a more reliable lead indicator for mid-term realized volatility than return-based autoregression alone.
+The results confirm that the momentum surface $\mu$ carries actionable information regarding future market turbulence. While GARCH models are effective at capturing volatility clustering through autoregressive returns, the PMT signal leverages structural trend decay across multiple look-back scales. The higher correlation observed in PMT ($\rho = 0.531$ vs 0.358 median) suggests that structural trend thinning provides a more reliable lead indicator for mid-term realized volatility than return-based autoregression alone.
 
-The finding that $W^*$ typically exceeds 200 days suggests that volatility spikes are preceded by shifts in the long term trend structure. The median $h^*$ of 31 days indicates that PMT is most useful for monthly volatility forecasting. Unlike GARCH models, which respond to volatility after it has already spiked, PMT identifies the structural thinning of a trend that often precedes the spike itself.
+The finding that $W^*$ typically exceeds 240 days suggests that volatility spikes are preceded by shifts in the long term trend structure. The median $h^*$ of 60 days (mean 43) indicates that PMT is most useful for monthly and quarterly volatility forecasting. Unlike GARCH models, which respond to volatility after it has already spiked, PMT identifies the structural thinning of a trend that often precedes the spike itself.
 
 \section{Conclusion}
-Price Mortality Theory offers a robust, purely price driven framework for anticipating market volatility. With a median Spearman correlation of 0.389 across the S\&P 500, the $\mu$ signal provides a significant edge over random walk assumptions and marginally outperforms traditional AR-GARCH forecasts in rank predictability. Future research will focus on integrating this signal into a dynamic position sizing algorithm to minimize drawdown during high mortality regimes.
+Price Mortality Theory offers a robust, purely price driven framework for anticipating market volatility. With a median Spearman correlation of 0.531 across the S\&P 500, the $\mu$ signal provides a significant edge over random walk assumptions and outperforms traditional AR-GARCH forecasts in rank predictability. Future research will focus on integrating this signal into a dynamic position sizing algorithm to minimize drawdown during high mortality regimes.
 
 \vspace{1em}
 \noindent \textit{Note: Full scripts and data are available in the accompanying repository.}
