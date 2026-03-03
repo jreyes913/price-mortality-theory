@@ -40,12 +40,16 @@ python main.py --ticker AAPL --start 2020-01-01 --end 2025-01-01
 Execute the full PMT analysis across all S&P 500 constituents. This generates the aggregate statistical findings used in the report:
 ```bash
 python scripts/bulk_sweep.py
+# optional: fetch fresh universe instead of frozen file
+# python scripts/bulk_sweep.py --use_live_universe
 ```
 
 ### 4. Run the GARCH Comparison
 To validate the PMT signal against the industry-standard AR(1)-GARCH(1,1) model:
 ```bash
 python scripts/garch_comparison.py
+# optional horizon grid
+# python scripts/garch_comparison.py --horizons 10,21,31,42
 ```
 
 ### 5. Generate the Research Report
@@ -65,6 +69,13 @@ $$\mu(W, t) = -\frac{1}{SMA} \left[ \frac{\partial SMA}{\partial W} + \frac{\par
 This captures both temporal momentum and structural sensitivity to the look-back window, providing a scale-invariant measure of trend "mortality." High mortality precedes regime shifts and spikes in realized volatility.
 
 ---
+
+
+## Reproducibility & Evaluation Notes
+- **Frozen universe by default**: `scripts/bulk_sweep.py` now uses `data/sp500_tickers.txt` unless `--use_live_universe` is set.
+- **Train/test PMT reporting**: bulk sweep selects `(W*, h*)` on train data and reports both `rho_train` and `rho_test`.
+- **Run manifests**: bulk and GARCH scripts now emit JSON manifests in `results/` with run parameters and commit hash.
+- **GARCH horizon grid**: GARCH results are now emitted for a shared horizon grid (`10,21,31,42` by default).
 
 ## Contact
 **Jose Reyes**  
