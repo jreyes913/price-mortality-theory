@@ -3,10 +3,12 @@ import json
 import os
 import subprocess
 import sys
+import traceback
 from datetime import datetime
 
 import pandas as pd
 from tqdm import tqdm
+import yfinance as yf
 
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -51,6 +53,13 @@ def write_manifest(run_id, manifest):
     return manifest_path
 
 
+def write_failures(run_id, failures):
+    os.makedirs("results", exist_ok=True)
+    path = f"results/{run_id}_bulk_failures.csv"
+    pd.DataFrame(failures).to_csv(path, index=False)
+    return path
+
+
 def bulk_analysis(
     start_date="2019-01-01",
     end_date="2025-01-01",
@@ -73,6 +82,8 @@ def bulk_analysis(
 
     summary_results = []
     pmt_horizon_results = []
+    failures = []
+    row_counts = []
 
     for ticker in tqdm(tickers, desc="Analyzing S&P 500"):
         try:
@@ -122,8 +133,19 @@ def bulk_analysis(
                     }
                 )
         except Exception as e:
-            print(f"Error analyzing {ticker}: {e}")
+            failures.append(
+                {
+                    "run_id": run_id,
+                    "ticker": ticker,
+                    "error_type": type(e).__name__,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(limit=1).strip(),
+                }
+            )
+            print(f"Error analyzing {ticker}: {type(e).__name__}: {e}")
             continue
+
+        row_counts.append(len(df))
 
     summary_df = pd.DataFrame(summary_results)
     summary_path = "results/sp500_summary_results.csv"
@@ -149,6 +171,13 @@ def bulk_analysis(
     ]
     pmt_agg_path = "results/pmt_horizon_aggregate.csv"
     pmt_agg.to_csv(pmt_agg_path, index=False)
+    failures_path = write_failures(run_id, failures)
+
+    row_stats = {
+        "min_rows": int(min(row_counts)) if row_counts else None,
+        "median_rows": float(pd.Series(row_counts).median()) if row_counts else None,
+        "max_rows": int(max(row_counts)) if row_counts else None,
+    }
 
     manifest = {
         "run_id": run_id,
@@ -163,14 +192,30 @@ def bulk_analysis(
         "train_ratio": train_ratio,
         "ticker_count": len(tickers),
         "ticker_source": ticker_source,
+        "tickers_attempted": len(tickers),
+        "tickers_succeeded": len(summary_results),
+        "tickers_failed": len(failures),
         "summary_path": summary_path,
         "pmt_horizon_summary_path": pmt_horizon_path,
         "pmt_horizon_aggregate_path": pmt_agg_path,
+        "failures_path": failures_path,
+        "data_provenance": {
+            "provider": "yfinance",
+            "yfinance_version": getattr(yf, "__version__", "unknown"),
+            "field": "Close",
+            "return_field": "Log_Return",
+            "interval": "1d",
+            "adjustment": "yfinance default (auto_adjust unset)",
+        },
+        "row_count_stats": row_stats,
     }
     manifest_path = write_manifest(run_id, manifest)
     print(f"Bulk analysis complete. Summary saved to {summary_path}")
     print(f"PMT horizon summary saved to {pmt_horizon_path}")
     print(f"PMT horizon aggregate saved to {pmt_agg_path}")
+    print(
+        f"Tickers attempted={len(tickers)} succeeded={len(summary_results)} failed={len(failures)}"
+    )
     print(f"Run manifest saved to {manifest_path}")
 
 

@@ -3,11 +3,11 @@
 A quantitative finance framework for volatility forecasting built entirely from price action. This repository implements the **Price Mortality Theory (PMT)**, identifying structural lead indicators for market volatility by analyzing the momentum surface $\mu(W, t)$.
 
 ## Findings (S&P 500, 2019--2025)
-The PMT signal demonstrates a robust predictive lead over traditional realized volatility measures:
-- **Median Spearman $\rho$**: 0.531 (Robust across 500+ tickers).
-- **Mean Optimal Window ($W^*$)**: 242 days (Long-term structural look-back).
-- **Mean Optimal Horizon ($h^*$)**: 43 days (Mid-term volatility lead).
-- **Benchmark Comparison**: Outperforms AR(1)-GARCH(1,1) (Mean $\rho$: 0.531 vs 0.363).
+Current checked-in artifacts include both in-sample (train) and out-of-sample (test) metrics.
+
+- **PMT train/test split**: parameter search is done on train; `rho_test` is reported separately.
+- **GARCH train/test split**: AR(1)-GARCH(1,1) is now reported as `rho_train` and `rho_test` over the same chronological split.
+- **Fair comparison**: compare PMT and GARCH on matching train/test columns and horizon grids, not a mixed in-sample vs out-of-sample setup.
 
 ---
 
@@ -74,8 +74,9 @@ This captures both temporal momentum and structural sensitivity to the look-back
 ## Reproducibility & Evaluation Notes
 - **Frozen universe by default**: `scripts/bulk_sweep.py` now uses `data/sp500_tickers.txt` unless `--use_live_universe` is set.
 - **Train/test PMT reporting**: bulk sweep selects `(W*, h*)` on train data and reports both `rho_train` and `rho_test`.
-- **Run manifests**: bulk and GARCH scripts now emit JSON manifests in `results/` with run parameters and commit hash.
-- **GARCH horizon grid**: GARCH results are now emitted for a shared horizon grid (`10,21,31,42` by default).
+- **Run manifests**: bulk and GARCH scripts emit JSON manifests in `results/` with run parameters, commit hash, success/failure counts, and data provenance.
+- **Failure accounting**: bulk and GARCH scripts emit `{run_id}_*_failures.csv` to audit skipped tickers and exception reasons.
+- **GARCH horizon grid**: GARCH results are emitted for a shared horizon grid (`10,21,31,42` by default).
 
 ## Contact
 **Jose Reyes**  
