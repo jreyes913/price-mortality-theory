@@ -1,0 +1,17 @@
+{
+  "run_id": "20260303T231623Z",
+  "script": "scripts/garch_comparison.py",
+  "git_commit": "8adea4c7dc87d65b96c854e91e6b85a25d508736",
+  "timestamp_utc": "2026-03-03T23:19:54.733629Z",
+  "start_date": "2019-01-01",
+  "end_date": "2025-01-01",
+  "horizons": [
+    10,
+    21,
+    31,
+    42
+  ],
+  "ticker_count": 503,
+  "summary_path": "results/garch_summary_results.csv",
+  "aggregate_path": "results/garch_horizon_aggregate.csv"
+}

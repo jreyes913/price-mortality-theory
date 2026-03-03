@@ -30,8 +30,10 @@ def generate_bulk_distribution():
 
     df = pd.read_csv("results/sp500_summary_results.csv")
     plt.figure(figsize=(6, 4))
-    sns.histplot(df['rho_star'], kde=True, color='#2563eb', alpha=0.6)
-    median_rho = df['rho_star'].median()
+    # Use rho_train if rho_star is not present
+    rho_col = 'rho_star' if 'rho_star' in df.columns else 'rho_train'
+    sns.histplot(df[rho_col], kde=True, color='#2563eb', alpha=0.6)
+    median_rho = df[rho_col].median()
     plt.axvline(median_rho, color='#d97706', linestyle='--', label=f'Median: {median_rho:.3f}')
     plt.xlabel(r'Spearman $\rho$')
     plt.ylabel('Frequency')

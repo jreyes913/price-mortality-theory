@@ -4,10 +4,10 @@ A quantitative finance framework for volatility forecasting built entirely from 
 
 ## Findings (S&P 500, 2019--2025)
 The PMT signal demonstrates a robust predictive lead over traditional realized volatility measures:
-- **Median Spearman $\rho$**: 0.389 (Robust across 500+ tickers).
-- **Mean Optimal Window ($W^*$)**: 214 days (Long-term structural look-back).
-- **Mean Optimal Horizon ($h^*$)**: 31 days (Mid-term volatility lead).
-- **Benchmark Comparison**: Outperforms AR(1)-GARCH(1,1) (Mean $\rho$: 0.389 vs 0.362).
+- **Median Spearman $\rho$**: 0.531 (Robust across 500+ tickers).
+- **Mean Optimal Window ($W^*$)**: 242 days (Long-term structural look-back).
+- **Mean Optimal Horizon ($h^*$)**: 43 days (Mid-term volatility lead).
+- **Benchmark Comparison**: Outperforms AR(1)-GARCH(1,1) (Mean $\rho$: 0.531 vs 0.363).
 
 ---
 
