@@ -19,54 +19,58 @@
 \maketitle
 
 \begin{abstract}
-This paper presents the Price Mortality Theory (PMT), a scale invariant framework for volatility forecasting derived from price action. By differentiating the Simple Moving Average (SMA) field across both time and window dimensions, we construct a momentum surface $\mu(W, t)$ that identifies structural shifts in price trends. We validate this signal against forward realized volatility $\hat{\sigma}$ using a Spearman rank correlation sweep across the S\&P 500 index. Our results demonstrate a robust predictive relationship, with a median Spearman $\rho$ of 0.531. Furthermore, we compare the PMT signal against a standard AR(1)-GARCH(1,1) model, finding that PMT provides a stronger predictive lead for monthly realized volatility.
+This report revisits Price Mortality Theory (PMT) using the latest checked-in train/test run artifacts across the full S\&P 500 universe snapshot in this repository. PMT is built from price alone by differentiating the Simple Moving Average field across both time and look-back dimensions to form a momentum surface $\mu(W,t)$. In-sample, PMT remains strong (median Spearman $\rho_{train}=0.531$). Out-of-sample, however, results are mixed: the per-ticker best-parameter PMT test median falls to $\rho_{test}=0.010$, while fixed-horizon PMT medians are stronger at short horizons (0.086 at 10 days, 0.061 at 21 days) and fade by 42 days. Against AR(1)-GARCH(1,1), PMT wins on test median at 10--31 day horizons but loses on test mean and at 42 days. Net: PMT still contains signal, but the new evidence says we should frame it as horizon-sensitive and not a universal out-of-sample knockout.
 \end{abstract}
 
 \section{Introduction}
-Predicting market volatility is a core challenge in quantitative finance, typically addressed through ARCH/GARCH family models or implied volatility from option surfaces. However, these methods often rely on squared returns or market expectations, frequently lagging behind structural regime shifts. We propose the Price Mortality Theory (PMT) as a purely price driven predictor. PMT treats the price time series not as a sequence of independent returns, but as a continuous field of moving averages across multiple scales.
+Forecasting volatility is still one of the hardest jobs in systematic trading. Traditional baselines like GARCH are solid, but they mostly react to return behavior after stress begins to build. PMT is trying to read the structure of trend decay earlier by treating price as a multi-scale field instead of a single return stream.
 
-The central concept is "Mortality" ($\mu$), a scale invariant measure of trend decay. Traditional momentum measures the rate of change of price over time ($\partial P / \partial t$). PMT extends this by considering the sensitivity of a trend to its own look-back window $W$. This captures the structural momentum—how the trend dissolves or accelerates as one zooms out. We hypothesize that high mortality in a price trend is a precursor to increased realized volatility.
+The core object is ``mortality'' ($\mu$), a scale-invariant measure of how trend integrity changes through time and across look-back depth. Intuition: when long-window trend structure starts thinning out, realized volatility can show up soon after. Earlier drafts of this report leaned heavily on headline in-sample strength. This rewrite keeps the same framework but centers train/test separation and side-by-side horizon comparisons so the claims stay honest.
 
 \section{Methods}
-We define the Simple Moving Average field $SMA(W, t)$ for a price $P_t$ and window size $W$. The momentum surface $\mu(W, t)$ is calculated as the normalized negative derivative of the SMA field:
+We define the Simple Moving Average field $SMA(W,t)$ for closing price $P_t$. PMT constructs the momentum surface as:
 \begin{equation}
     \mu(W, t) = -\frac{1}{SMA} \left[ \frac{\partial SMA}{\partial W} + \frac{\partial SMA}{\partial t} \right]
 \end{equation}
-Derivatives are approximated using central finite differences. To ensure causality, the signal $\mu(W, t)$ is shifted by one period, ensuring that only information available at time $t$ is used to forecast future volatility. Figure 1 illustrates the resulting momentum surface for the S\&P 500 (SPY), showing the evolution of the signal across multiple look-back scales and time.
+Derivatives are approximated with finite differences, and $\mu$ is shifted by one period to preserve causality.
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.7\textwidth]{images/spy_mu_surface.png}
-    \caption{3D Momentum Surface $\mu(W, t)$ for SPY (2019--2025).}
+    \caption{3D momentum surface $\mu(W,t)$ for SPY (2019--2025).}
 \end{figure}
 
-To evaluate predictive power, we compute the Spearman rank correlation $\rho$ between $\mu(W, t)$ and the forward realized volatility $\hat{\sigma}_h(t+1 \dots t+h)$ across a grid of window sizes $W \in [20, 300]$ and horizons $h \in [5, 60]$. For comparison, we also implement a standard AR(1)-GARCH(1,1) model using the same dataset, correlating its conditional volatility forecasts with the same forward realized volatility targets. We executed this bulk analysis on the S\&P 500 constituents using daily data from January 2019 to January 2025.
+Evaluation is run on the frozen S\&P 500 ticker list (`data/sp500_tickers.txt`) from 2019-01-01 to 2025-01-01, with a chronological 70/30 train/test split. PMT performs a grid sweep over $W \in [20,300]$ (step 20) and $h \in [5,60]$ (step 5), selects $(W^*, h^*)$ on train, then reports both train and test Spearman correlations versus forward realized volatility. For direct model comparison, PMT and AR(1)-GARCH(1,1) are also compared at fixed horizons $h=\{10,21,31,42\}$.
 
 \section{Results}
-The bulk analysis of 500 tickers reveals a strong and consistent predictive signal. The distribution of maximum correlation coefficients $\rho^*$ across the index is shown in Figure 2.
+From 503 attempted tickers, both PMT and GARCH complete on 499. PMT's in-sample profile is still strong: mean $\rho_{train}=0.508$, median $\rho_{train}=0.531$. The distribution is shown in Figure 2.
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.6\textwidth]{images/rho_distribution.png}
-    \caption{Distribution of maximum Spearman $\rho$ across S\&P 500 tickers.}
+    \caption{Distribution of PMT train-set max Spearman $\rho$ across S\&P 500 tickers.}
 \end{figure}
 
-The median $\rho$ across the index for the PMT model is 0.531. The optimal parameters cluster around specific scales: the mean optimal window $W^*$ is 242 days, and the mean optimal horizon $h^*$ is 43 days. In comparison, the AR(1)-GARCH(1,1) model yields a mean Spearman correlation of 0.363 across the same ticker set at a standard 31-day forecast horizon.
+Out-of-sample for per-ticker best parameters is much weaker: PMT reports mean $\rho_{test}=-0.018$ and median $\rho_{test}=0.010$ (491 non-null test observations). Parameter choices remain concentrated at long windows ($W^*$ mean 241.6, median 300) and long horizons ($h^*$ mean 43.1, median 60).
+
+For apples-to-apples horizon comparison, results are more nuanced (Table 1). PMT has higher test \emph{median} rank correlation than GARCH at 10, 21, and 31 days, but lower test \emph{mean} at every reported horizon, and both metrics are weaker by 42 days.
 
 \begin{table}[ht]
 \centering
-\caption{Predictive Performance Comparison (Spearman $\rho$)}
-\begin{tabular}{lcc}
+\caption{Out-of-sample horizon comparison (Spearman $\rho_{test}$ across 499 tickers).}
+\begin{tabular}{lcccc}
 \toprule
-Model & Mean $\rho$ & Median $\rho$ \\
+Horizon & PMT Mean & PMT Median & GARCH Mean & GARCH Median \\
 \midrule
-Price Mortality Theory (PMT) & 0.508 & 0.531 \\
-AR(1)-GARCH(1,1) (h=31) & 0.363 & 0.358 \\
+10 & 0.074 & 0.086 & 0.088 & 0.052 \\
+21 & 0.069 & 0.061 & 0.081 & 0.033 \\
+31 & 0.033 & 0.042 & 0.069 & 0.016 \\
+42 & -0.003 & -0.002 & 0.063 & 0.011 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-A case study of the SPY illustrates the correlation surface (Figure 3). The heatmap shows a broad region of high correlation, suggesting the signal is not hyper sensitive to exact parameter choice, though it performs best at forecasting mid term volatility (20--40 days) using long term trend windows (200--250 days).
+SPY's surface-level behavior remains visually consistent with prior runs, with broad positive regions in the medium horizon zone and better stability at longer $W$.
 
 \begin{figure}[ht]
     \centering
@@ -74,17 +78,22 @@ A case study of the SPY illustrates the correlation surface (Figure 3). The heat
     \caption{Spearman correlation surface for SPY (2019--2025).}
 \end{figure}
 
-For individual high growth tickers such as AAPL, we observed peak correlations as high as $\rho = 0.45$, consistently outperforming the baseline GARCH forecasts in rank correlation.
-
 \section{Discussion}
-The results confirm that the momentum surface $\mu$ carries actionable information regarding future market turbulence. While GARCH models are effective at capturing volatility clustering through autoregressive returns, the PMT signal leverages structural trend decay across multiple look-back scales. The higher correlation observed in PMT ($\rho = 0.531$ vs 0.358 median) suggests that structural trend thinning provides a more reliable lead indicator for mid-term realized volatility than return-based autoregression alone.
+Short version: the signal is real, but not magic. PMT crushes in-sample and still has useful out-of-sample behavior at short to medium horizons, especially if you judge robustness with medians. But once we demand broad out-of-sample consistency across the full cross-section, performance compresses hard and can flip negative at longer forecast horizons.
 
-The finding that $W^*$ typically exceeds 240 days suggests that volatility spikes are preceded by shifts in the long term trend structure. The median $h^*$ of 60 days (mean 43) indicates that PMT is most useful for monthly and quarterly volatility forecasting. Unlike GARCH models, which respond to volatility after it has already spiked, PMT identifies the structural thinning of a trend that often precedes the spike itself.
+So the practical read is straightforward and professional:
+\begin{itemize}
+    \item PMT should be treated as a horizon-aware feature, not a one-number universal forecaster.
+    \item Cross-sectional tails matter; means and medians can disagree, and both should be reported.
+    \item GARCH remains a competitive baseline, especially for longer horizons where PMT signal decays.
+\end{itemize}
+
+In other words, PMT is still useful, but deployment should probably be ensemble-first (PMT + volatility-model baseline), with strict walk-forward validation and horizon-specific calibration.
 
 \section{Conclusion}
-Price Mortality Theory offers a robust, purely price driven framework for anticipating market volatility. With a median Spearman correlation of 0.531 across the S\&P 500, the $\mu$ signal provides a significant edge over random walk assumptions and outperforms traditional AR-GARCH forecasts in rank predictability. Future research will focus on integrating this signal into a dynamic position sizing algorithm to minimize drawdown during high mortality regimes.
+PMT remains a compelling structural-volatility signal when evaluated carefully. The updated repository results support a balanced claim: strong in-sample ranking power, mixed but non-trivial out-of-sample utility at shorter horizons, and clear degradation as horizon extends. The framework is worth advancing, but the next step is disciplined model governance: rolling retraining, stability filters on $(W^*,h^*)$, and combination with established volatility models rather than replacing them outright.
 
 \vspace{1em}
-\noindent \textit{Note: Full scripts and data are available in the accompanying repository.}
+\noindent \textit{Note: all numbers in this report are taken from the checked-in CSV and manifest artifacts in `results/`.}
 
 \end{document}
