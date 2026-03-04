@@ -10,7 +10,7 @@
 
 \geometry{margin=1in}
 
-\title{\textbf{Price Mortality Theory: A Data-Driven Framework for Volatility Forecasting}}
+\title{\textbf{Price Mortality Theory: Full-Stack Train/Test Evidence with PMT, GARCH, and Combo Runs}}
 \author{Jose Reyes \\ \small jstunner55@gmail.com}
 \date{March 3, 2026}
 
@@ -19,20 +19,20 @@
 \maketitle
 
 \begin{abstract}
-This report revisits Price Mortality Theory (PMT) using the latest checked-in train/test run artifacts across the full S\&P 500 universe snapshot in this repository. PMT is built from price alone by differentiating the Simple Moving Average field across both time and look-back dimensions to form a momentum surface $\mu(W,t)$. In-sample, PMT remains strong (median Spearman $\rho_{train}=0.531$). Out-of-sample, however, results are mixed: the per-ticker best-parameter PMT test median falls to $\rho_{test}=0.010$, while fixed-horizon PMT medians are stronger at short horizons (0.086 at 10 days, 0.061 at 21 days) and fade by 42 days. Against AR(1)-GARCH(1,1), PMT wins on test median at 10--31 day horizons but loses on test mean and at 42 days. Net: PMT still contains signal, but the new evidence says we should frame it as horizon-sensitive and not a universal out-of-sample knockout.
+This version rolls in \emph{all} checked-in run artifacts: PMT grid sweep, AR(1)-GARCH(1,1), and the PMT+GARCH combination benchmark over the same S\&P 500 snapshot (2019-01-01 to 2025-01-01). Train strength is still strong for PMT and strongest for the combo build (combo train median up to 0.509 by 42-day horizon). But out-of-sample is where the truth hits: PMT leads GARCH on test medians at 10--31 days, GARCH leads PMT on test means at every horizon and clearly at 42 days, and the current combo run underperforms both on test means at every horizon and turns negative by 31/42 days. Straight read: PMT still has signal, but it is horizon-sensitive; GARCH is more stable on cross-sectional means; and this combo implementation is not production-ready yet.
 \end{abstract}
 
 \section{Introduction}
-Forecasting volatility is still one of the hardest jobs in systematic trading. Traditional baselines like GARCH are solid, but they mostly react to return behavior after stress begins to build. PMT is trying to read the structure of trend decay earlier by treating price as a multi-scale field instead of a single return stream.
+Vol forecasting is still hard, and the market does not care about in-sample flexing. PMT is built to read structural trend decay from price alone through a multiscale surface, while GARCH is the baseline most desks already trust. So the only fair move is full train/test separation, same universe, same date range, then compare outputs cleanly.
 
-The core object is ``mortality'' ($\mu$), a scale-invariant measure of how trend integrity changes through time and across look-back depth. Intuition: when long-window trend structure starts thinning out, realized volatility can show up soon after. Earlier drafts of this report leaned heavily on headline in-sample strength. This rewrite keeps the same framework but centers train/test separation and side-by-side horizon comparisons so the claims stay honest.
+Earlier drafts leaned on PMT's train wins. This rewrite keeps it real: all three model families are included, and conclusions are driven by out-of-sample behavior first.
 
 \section{Methods}
-We define the Simple Moving Average field $SMA(W,t)$ for closing price $P_t$. PMT constructs the momentum surface as:
+Define the Simple Moving Average field $SMA(W,t)$ on closing price $P_t$. PMT ``mortality'' is:
 \begin{equation}
     \mu(W, t) = -\frac{1}{SMA} \left[ \frac{\partial SMA}{\partial W} + \frac{\partial SMA}{\partial t} \right]
 \end{equation}
-Derivatives are approximated with finite differences, and $\mu$ is shifted by one period to preserve causality.
+Finite differences approximate derivatives, and $\mu$ is lagged one period for causal evaluation.
 
 \begin{figure}[ht]
     \centering
@@ -40,10 +40,23 @@ Derivatives are approximated with finite differences, and $\mu$ is shifted by on
     \caption{3D momentum surface $\mu(W,t)$ for SPY (2019--2025).}
 \end{figure}
 
-Evaluation is run on the frozen S\&P 500 ticker list (`data/sp500_tickers.txt`) from 2019-01-01 to 2025-01-01, with a chronological 70/30 train/test split. PMT performs a grid sweep over $W \in [20,300]$ (step 20) and $h \in [5,60]$ (step 5), selects $(W^*, h^*)$ on train, then reports both train and test Spearman correlations versus forward realized volatility. For direct model comparison, PMT and AR(1)-GARCH(1,1) are also compared at fixed horizons $h=\{10,21,31,42\}$.
+Data and evaluation setup:
+\begin{itemize}
+    \item Universe: frozen S\&P 500 list in `data/sp500_tickers.txt`.
+    \item Range: 2019-01-01 to 2025-01-01.
+    \item Split: chronological 70/30 train/test.
+    \item PMT sweep: $W \in [20,300]$ (step 20), $h \in [5,60]$ (step 5), best $(W^*,h^*)$ chosen on train.
+    \item Horizon benchmark set: $h=\{10,21,31,42\}$ for PMT-vs-GARCH and combo comparisons.
+\end{itemize}
 
 \section{Results}
-From 503 attempted tickers, both PMT and GARCH complete on 499. PMT's in-sample profile is still strong: mean $\rho_{train}=0.508$, median $\rho_{train}=0.531$. The distribution is shown in Figure 2.
+\subsection{Coverage and run integrity}
+The latest checked-in manifests show 503 attempted tickers for each pipeline, with 497 PMT successes, 499 GARCH successes, and 500 combo successes. Failure logs are present for each run, so skipped names are auditable.
+
+\subsection{PMT full-grid (best-parameter) behavior}
+Across 497 PMT successes, in-sample quality remains strong (mean $\rho_{train}=0.508$, median $0.531$). Out-of-sample for those train-selected best parameters compresses sharply (mean $\rho_{test}=-0.018$, median $0.010$; 489 non-null test observations).
+
+Parameter selection remains concentrated at the edge of the search grid: $W^*$ mean 241.4 (median 300) and $h^*$ mean 43.0 (median 60). In plain terms: train optimization keeps pushing toward longer windows/horizons, but that preference does not transfer reliably to test.
 
 \begin{figure}[ht]
     \centering
@@ -51,26 +64,58 @@ From 503 attempted tickers, both PMT and GARCH complete on 499. PMT's in-sample 
     \caption{Distribution of PMT train-set max Spearman $\rho$ across S\&P 500 tickers.}
 \end{figure}
 
-Out-of-sample for per-ticker best parameters is much weaker: PMT reports mean $\rho_{test}=-0.018$ and median $\rho_{test}=0.010$ (491 non-null test observations). Parameter choices remain concentrated at long windows ($W^*$ mean 241.6, median 300) and long horizons ($h^*$ mean 43.1, median 60).
-
-For apples-to-apples horizon comparison, results are more nuanced (Table 1). PMT has higher test \emph{median} rank correlation than GARCH at 10, 21, and 31 days, but lower test \emph{mean} at every reported horizon, and both metrics are weaker by 42 days.
+\subsection{Fixed-horizon PMT vs GARCH}
+At fixed horizons, PMT and GARCH tell a split story (Table~\ref{tab:pmt-garch}):
+\begin{itemize}
+    \item PMT has stronger \emph{test median} at 10, 21, and 31 days.
+    \item GARCH has stronger \emph{test mean} at every horizon.
+    \item By 42 days, PMT mean/median are near zero to negative while GARCH remains positive.
+\end{itemize}
 
 \begin{table}[ht]
 \centering
-\caption{Out-of-sample horizon comparison (Spearman $\rho_{test}$ across 499 tickers).}
+\caption{Out-of-sample PMT vs GARCH (Spearman $\rho_{test}$ aggregates).}
+\label{tab:pmt-garch}
 \begin{tabular}{lcccc}
 \toprule
 Horizon & PMT Mean & PMT Median & GARCH Mean & GARCH Median \\
 \midrule
-10 & 0.074 & 0.086 & 0.088 & 0.052 \\
-21 & 0.069 & 0.061 & 0.081 & 0.033 \\
-31 & 0.033 & 0.042 & 0.069 & 0.016 \\
-42 & -0.003 & -0.002 & 0.063 & 0.011 \\
+10 & 0.074 & 0.087 & 0.087 & 0.051 \\
+21 & 0.069 & 0.063 & 0.079 & 0.033 \\
+31 & 0.033 & 0.048 & 0.066 & 0.016 \\
+42 & -0.003 & -0.002 & 0.059 & 0.010 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-SPY's surface-level behavior remains visually consistent with prior runs, with broad positive regions in the medium horizon zone and better stability at longer $W$.
+Cross-sectionally, PMT beats GARCH on test $\rho$ for about 47\% of matched ticker-horizon pairs (not a majority), so this is not a clean takeover narrative.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{images/horizon_mean_comparison.png}
+    \caption{Out-of-sample horizon comparison using cross-sectional \emph{mean} Spearman $\rho_{test}$ for PMT, GARCH, and combo.}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{images/horizon_median_comparison.png}
+    \caption{Out-of-sample horizon comparison using cross-sectional \emph{median} Spearman $\rho_{test}$ for PMT, GARCH, and combo.}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{images/horizon_pmt_vs_garch_delta.png}
+    \caption{PMT minus GARCH out-of-sample $\rho_{test}$ deltas across horizons (positive means PMT leads).}
+\end{figure}
+
+\subsection{Combination run (PMT + GARCH)}
+The combo run was expected to improve robustness; right now it does not. It is very strong in-sample (train medians 0.463, 0.481, 0.498, 0.509 from 10 to 42 days), but test performance drops hard:
+\begin{itemize}
+    \item Test means: 0.053 (10d), 0.029 (21d), -0.012 (31d), -0.040 (42d).
+    \item Test medians: 0.059 (10d), 0.036 (21d), -0.012 (31d), -0.039 (42d).
+\end{itemize}
+
+Against PMT and GARCH in matched observations, combo wins only about 29.6\% vs PMT and 43.8\% vs GARCH on test $\rho$. So this blend, as implemented now, is overfit on train and not delivering out-of-sample lift.
 
 \begin{figure}[ht]
     \centering
@@ -79,21 +124,19 @@ SPY's surface-level behavior remains visually consistent with prior runs, with b
 \end{figure}
 
 \section{Discussion}
-Short version: the signal is real, but not magic. PMT crushes in-sample and still has useful out-of-sample behavior at short to medium horizons, especially if you judge robustness with medians. But once we demand broad out-of-sample consistency across the full cross-section, performance compresses hard and can flip negative at longer forecast horizons.
-
-So the practical read is straightforward and professional:
+Professional summary, no hype:
 \begin{itemize}
-    \item PMT should be treated as a horizon-aware feature, not a one-number universal forecaster.
-    \item Cross-sectional tails matter; means and medians can disagree, and both should be reported.
-    \item GARCH remains a competitive baseline, especially for longer horizons where PMT signal decays.
+    \item PMT is still useful, especially for short-to-mid horizons when judged by medians (cross-sectional robustness proxy).
+    \item GARCH is the steadier choice on test means and becomes clearly better at longer horizons.
+    \item The current combo stack is not ready; train gains are not surviving test.
 \end{itemize}
 
-In other words, PMT is still useful, but deployment should probably be ensemble-first (PMT + volatility-model baseline), with strict walk-forward validation and horizon-specific calibration.
+So the deployment logic is simple: keep PMT in the feature set, keep GARCH as a backbone baseline, and treat combo architecture as an active research track rather than a shipped model. Next upgrades should prioritize regularization, stricter walk-forward validation, and horizon-specific weighting instead of static blending.
 
 \section{Conclusion}
-PMT remains a compelling structural-volatility signal when evaluated carefully. The updated repository results support a balanced claim: strong in-sample ranking power, mixed but non-trivial out-of-sample utility at shorter horizons, and clear degradation as horizon extends. The framework is worth advancing, but the next step is disciplined model governance: rolling retraining, stability filters on $(W^*,h^*)$, and combination with established volatility models rather than replacing them outright.
+All-in evidence says PMT has real signal but not universal dominance. Horizon sensitivity is the key fact. GARCH remains competitive to superior on mean out-of-sample behavior, and the present PMT+GARCH combo run fails to add test alpha. The path forward is disciplined: horizon-aware calibration, anti-overfit controls, and ensemble design that is validated out-of-sample before any production claims.
 
 \vspace{1em}
-\noindent \textit{Note: all numbers in this report are taken from the checked-in CSV and manifest artifacts in `results/`.}
+\noindent \textit{Note: all metrics above are taken from checked-in CSV and manifest artifacts under `results/`.}
 
 \end{document}
