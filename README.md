@@ -52,8 +52,16 @@ python scripts/garch_comparison.py
 # python scripts/garch_comparison.py --horizons 10,21,31,42
 ```
 
-### 5. Generate the Research Report
-To regenerate the 3D surface plots and distribution figures, then compile the LaTeX report:
+### 5. Run the PMT + GARCH Combination Comparison
+To evaluate a blended model that combines AR(1)-GARCH(1,1) sigma and PMT mortality features:
+```bash
+python scripts/combo_comparison.py
+# optional horizon grid
+# python scripts/combo_comparison.py --horizons 10,21,31,42
+```
+
+### 6. Generate the Research Report Plots
+To regenerate the report figures (including PMT/GARCH/combo horizon comparison plots), then compile LaTeX:
 ```bash
 python plotting/generate_report_plots.py
 cd report
@@ -77,6 +85,7 @@ This captures both temporal momentum and structural sensitivity to the look-back
 - **Run manifests**: bulk and GARCH scripts emit JSON manifests in `results/` with run parameters, commit hash, success/failure counts, and data provenance.
 - **Failure accounting**: bulk and GARCH scripts emit `{run_id}_*_failures.csv` to audit skipped tickers and exception reasons.
 - **GARCH horizon grid**: GARCH results are emitted for a shared horizon grid (`10,21,31,42` by default).
+- **Combo benchmark**: `scripts/combo_comparison.py` emits `results/combo_summary_results.csv` and `results/combo_horizon_aggregate.csv` for blended PMT+GARCH evaluation.
 
 ## Contact
 **Jose Reyes**  
