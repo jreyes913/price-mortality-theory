@@ -1,0 +1,25 @@
+run_id,ticker,error_type,error,traceback
+20260304T033359Z,BKR,ValueError,No data found for ticker BKR,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/bulk_sweep.py"", line 90, in bulk_analysis
+    result = run_pipeline(
+ValueError: No data found for ticker BKR"
+20260304T033359Z,CMI,ValueError,No data found for ticker CMI,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/bulk_sweep.py"", line 90, in bulk_analysis
+    result = run_pipeline(
+ValueError: No data found for ticker CMI"
+20260304T033359Z,NCLH,ValueError,No data found for ticker NCLH,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/bulk_sweep.py"", line 90, in bulk_analysis
+    result = run_pipeline(
+ValueError: No data found for ticker NCLH"
+20260304T033359Z,Q,ValueError,No data found for ticker Q,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/bulk_sweep.py"", line 90, in bulk_analysis
+    result = run_pipeline(
+ValueError: No data found for ticker Q"
+20260304T033359Z,SNDK,ValueError,No data found for ticker SNDK,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/bulk_sweep.py"", line 90, in bulk_analysis
+    result = run_pipeline(
+ValueError: No data found for ticker SNDK"
+20260304T033359Z,STZ,ValueError,No data found for ticker STZ,"Traceback (most recent call last):
+  File ""/home/jose/price-mortality-theory/scripts/bulk_sweep.py"", line 90, in bulk_analysis
+    result = run_pipeline(
+ValueError: No data found for ticker STZ"

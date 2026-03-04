@@ -12,6 +12,3 @@ venv/
 report/report.aux
 report/report.log
 report/report.out
-
-# Systemd service file
-pmt-analysis.service

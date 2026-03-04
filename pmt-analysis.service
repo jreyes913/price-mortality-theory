@@ -1,0 +1,14 @@
+[Unit]
+Description=Price Mortality Theory (PMT) S&P 500 Analysis
+After=network.target
+
+[Service]
+Type=simple
+User=jose
+WorkingDirectory=/home/jose/price-mortality-theory
+ExecStart=/home/jose/price-mortality-theory/run_analysis.sh
+Restart=on-failure
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
